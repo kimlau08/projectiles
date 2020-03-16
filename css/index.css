@@ -1,0 +1,22 @@
+body {
+    text-align: center;
+}
+
+#startGameContainer {
+    display: flex;
+    flex-direction: column;
+}
+
+#gameSnapshot {
+    margin: 0 auto;
+    width: 800px;;
+    height: auto;
+}
+
+#startGameBtn {
+    margin: 0 auto;
+    margin-top: 28px;
+    width: 20%;
+    height: 24px;
+    font-size: 18px;
+}
