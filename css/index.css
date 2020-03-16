@@ -5,18 +5,17 @@ body {
 #startGameContainer {
     display: flex;
     flex-direction: column;
+    justify-content: space-evenly;
 }
 
-#gameSnapshot {
-    margin: 0 auto;
-    width: 800px;;
-    height: auto;
+.gameSnapshot {
+    width: 100%;
 }
 
 #startGameBtn {
     margin: 0 auto;
     margin-top: 28px;
-    width: 20%;
+    width: 25%;
     height: 24px;
-    font-size: 18px;
+    font-size: 16px;
 }

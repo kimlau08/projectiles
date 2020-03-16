@@ -58,6 +58,10 @@ let hutImgInitX=100; //default x
 let barnImg;				let barnSizeFactor=0.5;
 let barnImgInitX=100;  //default x
 
+//smoke
+let smokeImg;				let smokeSizeFactor=1;
+let smokeImgWidth;			let smokeImgHeight;
+
 let redCannonImgWidth; let redCannonImgHeight;
 let greenCannonImgWidth; let greenCannonImgHeight;
 let cannonPlatformImgWidth; let cannonPlatformImgHeight;
@@ -75,7 +79,7 @@ let distFromObj=10;	   //dist between 2 objects
 const cannonMinMove=0;  const cannonMaxMove=250;  //1500 for 800x400, 250 for 1000x500 canvas
 
 const cannonMinAngle=0; const cannonMaxAngle=90;  //init to 0
-const cannonMinForce=0; const cannonMaxForce=200;  //init to 0
+const cannonMinForce=0; const cannonMaxForce=300;  //init to 0
 
 //players' game control sliders
 const sliderYSpace=20; //vertical space for a slider (for both red and green players)
@@ -100,13 +104,14 @@ function preload() {
 	// the image is 720x400 pixels.
 	bg = loadImage('../assets/mountain_scene_background.png');  
 
-
 	redCannonImg=loadImage('../assets/red_cannon.png');
 	greenCannonImg=loadImage('../assets/green_cannon.png');
 	cannonPlatformImg=loadImage('../assets/cannon_platform.png');
 	hutImg=loadImage('../assets/hut.png');
 	barnImg=loadImage('../assets/barn_house.png');
 	projectileImg=loadImage('../assets/rubber_chick.png');
+
+	smokeImg=loadImage('../assets/cannon_smoke2.png');
 }
 
 
@@ -128,6 +133,9 @@ class GameSpaceObj {
 		this.greenMoveSlider = {};
 		this.greenAngleSlider = {};
 		this.greenForceSlider = {};
+
+		this.smoke = {};
+		this.smokeFrames = 50; //show for 50 frames each time.
 
 		this.redPlayerScore=0;
 		this.greenPlayerScore=0;
@@ -162,6 +170,7 @@ scoreBoard = {
 	y: 0,
 	on: false,  //default to now show scoreboard
 	closeBtn: {},
+	knockOutWinner: "",
 
 	drawScoreBoard() {
 
@@ -182,16 +191,6 @@ scoreBoard = {
 		push();
 			fill(0, 0, 255);
 			let scoreboardTitle="Scores";
-			let redPlayerScore=`Red Player: ${gameSpace.redPlayerScore}`;
-			let greenPlayerScore=`Green Player: ${gameSpace.greenPlayerScore}`;
-			let winnerDecl="It is a tie!";
-			if (redPlayerScore>greenPlayerScore) {
-				winnerDecl="Winner is Red Player!" 
-			};
-			if (redPlayerScore<greenPlayerScore) {
-				winnerDecl="Winner is Green Player!" 
-			};
-
 			let line1Height=30;
 			let line2Height=40;  let=line3Height=20;
 			let line4Height=50;
@@ -199,17 +198,39 @@ scoreBoard = {
 			let scoreX=this.x+Math.floor((this.w-textWidth(scoreboardTitle))/2);
 			let prtX=scoreX;
 			let prtY=this.y+line1Height; 
+			
 			text(scoreboardTitle, prtX, prtY);
 
-			prtX=this.x+Math.floor((this.w-textWidth(redPlayerScore))/2)-10;
-			prtY=prtY+line2Height; 
-			text(redPlayerScore, prtX, prtY); 
+			if (this.knockOutWinner==="") {
+				//no cannon has been knocked out, the scores determine the winner
 
-			//keep prtX unchanged for the rest of the box
-			prtY=prtY+line3Height; 
-			text(greenPlayerScore, prtX, prtY);
-			prtY=prtY+line4Height; 
-			text(winnerDecl, prtX, prtY);
+				let redPlayerScore=`Red Player: ${gameSpace.redPlayerScore}`;
+				let greenPlayerScore=`Green Player: ${gameSpace.greenPlayerScore}`;
+				let winnerDecl="It is a tie!";
+				if (gameSpace.redPlayerScore>gameSpace.greenPlayerScore) {
+					winnerDecl="Winner is Red Player!" 
+				};
+				if (gameSpace.redPlayerScore<gameSpace.greenPlayerScore) {
+					winnerDecl="Winner is Green Player!" 
+				};
+	
+	
+				prtX=this.x+Math.floor((this.w-textWidth(redPlayerScore))/2)-10;
+				prtY=prtY+line2Height; 
+				text(redPlayerScore, prtX, prtY); 
+	
+				//keep prtX unchanged for the rest of the box
+				prtY=prtY+line3Height; 
+				text(greenPlayerScore, prtX, prtY);
+				prtY=prtY+line4Height; 
+				text(winnerDecl, prtX, prtY);
+	
+			} else {
+				//draw the knock out winner text
+				prtX=this.x+Math.floor((this.w-textWidth(this.knockOutWinner))/2)
+				prtY+=line2Height + line3Height;
+				text(this.knockOutWinner, prtX, prtY);
+			}
 		pop();
 
 		this.closeBtn=createButton("Close");
@@ -358,6 +379,7 @@ function layoutGameSpaceOnDesktop() {
 		Math.floor(greenCannonImgWidth*greenCannonSizeFactor), projectileImg, projectileImgSizeFactor);
 	gameSpace.greenProjectile.isAlive=false; //do not draw until projectile is airborne
 
+
 	//create target buildings for green cannon (located to the right of red cannon)
 	//layout target objects from right to left
 	let currentX=redCannonInitX+Math.floor(redCannonImg.width*redCannonSizeFactor) //red cannon at init x + width of cannon
@@ -399,8 +421,10 @@ function layoutGameSpaceOnDesktop() {
 	//create green cannon and its platform
 	gameSpace.greenCannon=new Cannon(greenCannonInitX, greenCannonInitAngle, initialShotsCount, greenCannonImg, greenCannonSizeFactor, cannonPlatformImg, cannonPlatformSizeFactor);
 
-
-
+	//create smoke - to be shown when a projectile hits a target
+	//allocated last to ensure it shown on top of all other images
+	gameSpace.smoke=new GameObj(redCannonInitX, smokeImg, smokeSizeFactor); //put in arbitrary x for now. 
+	gameSpace.smoke.isAlive=false; //do not draw until a target is hit
 
 }
 
@@ -430,6 +454,15 @@ class GameObj {
 	objImg=null	//image for the object
 	imgSizeFactor=1
 	score=10
+	//Define 2 corners of obj to detect whether object has been hit
+	upperLeft={
+		x : 0,
+		y : 0
+	}
+	lowerRight={
+		x : 0,
+		y : 0
+	} 
 
 	isAlive=true; //whether to show the object on canvas
 
@@ -439,42 +472,29 @@ class GameObj {
 		this.imgSizeFactor=imgSizeFactor;
 		this.w=Math.floor(this.objImg.width*imgSizeFactor);
 		this.h=Math.floor(this.objImg.height*imgSizeFactor);
+
+		this.upperLeft.x=x;
+		this.upperLeft.y=this.y-this.h;
+		this.lowerRight.x=x+this.w;
+		this.lowerRight.y=this.y;
 	}
 
-	// get x() {
-	// 	return this.x;
-	// }
-	// get y() {
-	// 	return this.y;
-	// }
-	// get w() {
-	// 	return this.w;
-	// }
-	// get h() {
-	// 	return this.h;
-	// }
-	// get isAlive() {
-	// 	return this.isAlive;
-	// }
-	// /**
-	//  * @param {number} x
-	//  */
-	// set x(x) {
-	// 	this.x=x;
-	// }
-	// /**
-	//  * @param {number} y
-	//  */
-	// set y(y) {
-	// 	this.y=y
-	// }
-	// /**
-	//  * @param {boolean} status
-	//  */
-	// set isAlive(status) {
-	// 	this.isAlive=status;
-	// }
-
+	isColliding(incomingObj) {
+		if (!incomingObj.isAlive) {
+			return false; //the projectile is not active. No collision
+		}
+		//if one rectangle is completely to the left of the other
+		if (this.upperLeft.x > incomingObj.lowerRight.x  ||
+			incomingObj.upperLeft.x > this.lowerRight.x ) {
+			return false;
+		}
+		//if one rectangle is completely above the other. Remember that y is higher if smaller
+		if (this.upperLeft.y > incomingObj.lowerRight.y ||
+			incomingObj.upperLeft.y > this.lowerRight.y) {
+				return false;
+		}
+		return true; //the 2 rectangles overlap/collide
+	}
 
 	drawObj() {
 		if (!this.isAlive) {
@@ -492,13 +512,14 @@ class Projectile extends GameObj {
 	ySpeed=0
 	velocity=0
 	gravity=1
-	isRedProjectile=true //initial x position determins red vs green projectile
+	isRedProjectile=true //initial x position determines red vs green projectile
 	isGreenProjectile=false
 
 	constructor(x, img, imgSizeFactor) {
 		super(x, img, imgSizeFactor);
 		this.y-=cannonPlatformHeight; //on cannon plaform (above ground level); otherwise it is considered detonated (not alive)
 		
+		this.score=0;	//unlike target objects, projectiles do not carry scores
 		this.isRedProjectile=this.x<canvasWidth/2;
 		this.isGreenProjectile=this.x>canvasWidth/2;
 	}
@@ -509,7 +530,7 @@ class Projectile extends GameObj {
 			this.x=cannon.x;
 			this.y=groundLevel-cannonPlatformHeight;
 		} else { //put projectile inside green cannon
-			this.x=cannon.x+Math.floor(greenCannonImgWidth*greenCannonSizeFactor);
+			this.x=cannon.x+Math.floor(greenCannonImgWidth*greenCannonSizeFactor-greenCannonImgWidth);
 			this.y=groundLevel-cannonPlatformHeight;
 		}
 		this.xSpeed=0;
@@ -555,8 +576,16 @@ console.log(`x: ${(this.x).toFixed(4)} y: ${(this.y).toFixed(4)} xSpd: ${(this.x
 				this.resetProjectileInCannon(gameSpace.greenCannon);	
 			}
 		} else {
-			this.x += this.xSpeed;
-			this.y += this.ySpeed;
+
+			//update position of the projectile
+			this.x += this.xSpeed*0.3;
+			this.y += this.ySpeed*0.3;
+
+			//update the positions of the upper left and lower right corners for collision detection
+			this.upperLeft.x=this.x;
+			this.upperLeft.y=this.y-this.h;
+			this.lowerRight.x=this.x+this.w;
+			this.lowerRight.y=this.y;
 		}
 
 		if(this.x >= canvasWidth || this.x <= 0){ //outside left or right of screen
@@ -569,6 +598,38 @@ console.log(`x: ${(this.x).toFixed(4)} y: ${(this.y).toFixed(4)} xSpd: ${(this.x
 				this.resetProjectileInCannon(gameSpace.greenCannon);	
 			}
 
+		}
+
+		//check for collision with targets
+		let rTargets=gameSpace.redTargets;	 let redCannon=gameSpace.redCannon;
+		let gTargets=gameSpace.greenTargets; let greenCannon=gameSpace.greenCannon;
+
+		for (let i=0; i<rTargets.length; i++) {
+			if (rTargets[i].isColliding(this)) {
+				this.isAlive=false;
+				this.resetProjectileInCannon(redCannon);
+				gameSpace.redPlayerScore+=rTargets[i].score;
+			}
+		}
+		if (greenCannon.isColliding(this) && 
+			!this.isGreenProjectile) {   //shooting itself is not allowed
+			//green cannon is hit by a projectile, red player wins
+			scoreBoard.knockOutWinner="Red player wins. It is a knock out!"
+			stopGame();
+		}
+
+		for (let i=0; i<gTargets.length; i++) {
+			if (gTargets[i].isColliding(this)) {
+				this.isAlive=false;
+				this.resetProjectileInCannon(greenCannon);
+				gameSpace.greenPlayerScore+=gTargets[i].score;
+			}
+		}
+		if (redCannon.isColliding(this)  && 
+				!this.isRedProjectile) {   //shooting itself is not allowed
+			//red cannon is hit by a projectile, green player wins
+			scoreBoard.knockOutWinner="Green player wins. It is a knock out!"
+			stopGame();
 		}
 	}
 }
@@ -586,6 +647,8 @@ class Cannon extends GameObj{
 		this.cannonPlatform=new GameObj(Math.floor(x), platformImg, platformSizeFactor);
 
 		this.y=groundLevel-this.cannonPlatform.h-distFromPlatform //cannon is on platform (platform defaults to groundLevel)
+
+		this.score=0;	//unlike target objects, cannons do not carry scores
 	}
 	move(x) {  //move BOTH cannon and platform to new x
 		let d=x-this.x;
@@ -656,6 +719,8 @@ function setup() {
 	hutImgHeight=hutImg.height;
 	barnImgWidth=barnImg.width;
 	barnImgHeight=barnImg.height;
+	smokeImgWidth=smokeImg.width;
+	smokeImgHeight=smokeImg.height;
 
 	angleMode(DEGREES); //to specify angles in degrees
 
@@ -669,6 +734,8 @@ function setup() {
 			canvasWidth=desktopBackgroundWidth;
 			canvasHeight=desktopBackgroundHeight;
 
+//		canvasOrigin=can.position(); //put canvas at upper left corner of window viewport
+
 		canvasOrigin=can.position(0,0); //put canvas at upper left corner of window viewport
 	
 		layoutGameSpaceOnDesktop();
@@ -681,11 +748,12 @@ function windowResized() {
 
 	console.log(`resized new W: ${windowWidth}, H: ${windowHeight}`);
 	
-		if (isOnAndroidMobile()) {
-			resizeCanvas(AndroidMobileWidth, AndroidMobileHeight)
-		} else {
-			resizeCanvas(desktopBackgroundWidth, desktopBackgroundHeight);
-		}
+	
+		// if (isOnAndroidMobile()) {
+		// 	resizeCanvas(AndroidMobileWidth, AndroidMobileHeight)
+		// } else {
+		// 	resizeCanvas(desktopBackgroundWidth, desktopBackgroundHeight);
+		// }
 	
 		//resizeCanvas(w, h, [noRedraw])
 	}
