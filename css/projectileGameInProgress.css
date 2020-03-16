@@ -1,0 +1,19 @@
+
+body {
+    text-align: center;
+}
+
+#canvasContainer {
+  min-width: 640px;
+  height: 100%;
+  min-height: 360px;
+
+  z-index: 100;
+}
+
+/* Android Mobile screen size - Landscape orientation */
+#sketchBox {
+  height: 100%;
+    min-width: 640px;
+    min-height: 360px;
+}

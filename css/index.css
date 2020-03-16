@@ -5,17 +5,22 @@ body {
 #startGameContainer {
     display: flex;
     flex-direction: column;
-    justify-content: space-evenly;
 }
 
-.gameSnapshot {
+#gameSnapshot {
     width: 100%;
+    height: auto;
 }
+
+#startGameBtnContainer {
+    width: 100%;
+    margin-top: 10px;
+}
+
 
 #startGameBtn {
-    margin: 0 auto;
-    margin-top: 28px;
-    width: 25%;
-    height: 24px;
+    margin-top: 8px;
+    display: inline-block;
     font-size: 16px;
+    background-color: #FFDAB9;
 }

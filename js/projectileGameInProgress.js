@@ -2,14 +2,16 @@
 const desktopBackgroundWidth=1000;
 const desktopBackgroundHeight=500;
 
-const desktopGameControlWidth=desktopBackgroundWidth;
-const desktopGameControlHeight=150;   //130 for 800x400, 150 for 1000x500 canvas
+let desktopGameControlWidth=desktopBackgroundWidth;
+let desktopGameControlHeight=150;   //130 for 800x400, 150 for 1000x500 canvas
 
+let canvasObj;
 let canvasOrigin; //origin (x,y) coord of canvas
 
+//android mobile landscape dimensions
 const AndroidMobileWidthTriggerMargin=200;
-const AndroidMobileWidth=360;
-const AndroidMobileHeight=640;
+const AndroidMobileWidth=640;
+const AndroidMobileHeight=360;
 
 const AndroidMobileGameHeight=400;
 const AndroidMobileGameControlWidth=AndroidMobileWidth;
@@ -19,7 +21,7 @@ let canvasWidth=desktopBackgroundWidth;
 let canvasHeight=desktopBackgroundHeight;
 
 //groundLevel=number of pixels from top of canvas. (0,0) is upper left corner
-const groundLevel=canvasHeight-desktopGameControlHeight; //bottom space for sliders and buttons
+let groundLevel=canvasHeight-desktopGameControlHeight; //bottom space for sliders and buttons
 
 const cannonWidth=30;			const cannonHeight=10;
 const cannonPlatformWidth=20;   const cannonPlatformHeight=5;
@@ -41,7 +43,7 @@ let redCannonImg;			const redCannonSizeFactor=0.5;
 const redCannonInitX=20; 	//initial distance from left side of canvas
 
 let greenCannonImg;			let greenCannonSizeFactor=0.5;
-const greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;  //symmetric dist from righ side of canvas
+let greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;  //symmetric dist from righ side of canvas
 
 let projectileImg;			let projectileImgSizeFactor=0.2;
 const redProjectileInitX=redCannonInitX; 	//inside red cannon
@@ -84,18 +86,35 @@ const cannonMinForce=0; const cannonMaxForce=300;  //init to 0
 //players' game control sliders
 const sliderYSpace=20; //vertical space for a slider (for both red and green players)
 
+
 //red player controls
-let redSliderX=redCannonInitX;  //X coord of all red player's sliders
-const redMoveSliderY=canvasHeight-desktopGameControlHeight+10; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
-const redAngleSliderY=redMoveSliderY+sliderYSpace; //Y coord of slider for cannon elevation angle
-const redForceSliderY=redAngleSliderY+sliderYSpace; //Y coord of slider for cannon launch force
+let redSliderX=0;  //X coord of all red player's sliders
+let redMoveSliderY=0; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
+let  redAngleSliderY=0; //Y coord of slider for cannon elevation angle
+let  redForceSliderY=0; //Y coord of slider for cannon launch force
 
 //green player controls
-let greenSliderX=greenCannonInitX  //X coord of all green player's sliders
-const greenMoveSliderY=canvasHeight-desktopGameControlHeight+10; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
-const greenAngleSliderY=greenMoveSliderY+sliderYSpace; //Y coord of slider for cannon elevation angle
-const greenForceSliderY=greenAngleSliderY+sliderYSpace; //Y coord of slider for cannon launch force
+let greenSliderX=0;  //X coord of all green player's sliders
+let greenMoveSliderY=0; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
+let greenAngleSliderY=0; //Y coord of slider for cannon elevation angle
+let greenForceSliderY=0; //Y coord of slider for cannon launch force
 
+function updateSliderReferencePoints() {
+	//red player controls
+	redSliderX=redCannonInitX;  //X coord of all red player's sliders
+	redMoveSliderY=canvasHeight-desktopGameControlHeight+15; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
+	redAngleSliderY=redMoveSliderY+sliderYSpace; //Y coord of slider for cannon elevation angle
+	redForceSliderY=redAngleSliderY+sliderYSpace; //Y coord of slider for cannon launch force
+
+	//green player controls
+	greenSliderX=greenCannonInitX  //X coord of all green player's sliders
+	greenMoveSliderY=canvasHeight-desktopGameControlHeight+15; //Y coord of slider for x axis movement of cannon (top of game control area with padding of sliderYSpace)
+	greenAngleSliderY=greenMoveSliderY+sliderYSpace; //Y coord of slider for cannon elevation angle
+	greenForceSliderY=greenAngleSliderY+sliderYSpace; //Y coord of slider for cannon launch force
+}
+
+//Initalized here for use below. Also used when resizing window.
+updateSliderReferencePoints();
 
 function preload() {
 
@@ -127,13 +146,6 @@ class GameSpaceObj {
 		this.redTargets = [];
 		this.greenTargets = [];
 
-		this.redMoveSlider = {};
-		this.redAngleSlider = {};
-		this.redForceSlider = {};
-		this.greenMoveSlider = {};
-		this.greenAngleSlider = {};
-		this.greenForceSlider = {};
-
 		this.smoke = {};
 		this.smokeFrames = 50; //show for 50 frames each time.
 
@@ -144,8 +156,8 @@ class GameSpaceObj {
 	drawPlayerStatus() {
 		let redShotsLeft=this.redCannon.shotsLeft;
 		let greenShotsLeft=this.greenCannon.shotsLeft;
-		let txtPadding=6;			//add space for the 2 data points
-		let distFromForceSlider=40; //vertical distances below last slider
+		let txtPadding=8;			//add space for the 2 data points
+		let distFromForceSlider=25; //vertical distances below last slider
 	
 		let redPlayStatusStr=`Total Points: ${this.redPlayerScore}   Shots left: ${redShotsLeft}`
 		//red player status
@@ -158,7 +170,19 @@ class GameSpaceObj {
 }
 
 //////////////////////// Initial gameSpace ///////////////////
-let gameSpace = new GameSpaceObj();
+let gameSpace;
+
+let redMoveSlider = {};
+let redAngleSlider = {};
+let redForceSlider = {};
+let greenMoveSlider = {};
+let greenAngleSlider = {};
+let greenForceSlider = {};
+
+let redLaunchBtn;
+let greenLaunchBtn;
+let stopGameBtn;
+let closeBtn=null;
 
 
 scoreBoard = {
@@ -169,7 +193,6 @@ scoreBoard = {
 	x: 0,
 	y: 0,
 	on: false,  //default to now show scoreboard
-	closeBtn: {},
 	knockOutWinner: "",
 
 	drawScoreBoard() {
@@ -233,10 +256,6 @@ scoreBoard = {
 			}
 		pop();
 
-		this.closeBtn=createButton("Close");
-		this.closeBtn.style('background-color', color(255,218,185));
-		this.closeBtn.position(scoreX-8, prtY+line1Height);	//horizontally align with scoreboard title
-		this.closeBtn.mousePressed(restartGame);
 	}
 }
 
@@ -254,11 +273,7 @@ class gameControlSlider {
 	constructor (x, y, min, max, initValue) {
 		this.x=x; this.y=y;
 		this.slider=createSlider(min, max, initValue);
-		if (this.isGreenSlider()) { //this on right side of canvas
-			this.x=x-this.slider.width+Math.floor(greenCannonImgWidth*greenCannonSizeFactor); 
-			this.y=y;  
-		} 
-		this.slider.position(this.x, this.y)
+		this.position(x, y);
 		this.min=min; this.max=max;
 		this.initValue=initValue;
 	}
@@ -269,14 +284,23 @@ class gameControlSlider {
 	isGreenSlider () {
 		return(this.x>canvasWidth/2); //this is green slider on the right of screen)
 	}
+	position (x,y) {
+		this.x=x;
+		this.y=y;
+		if (this.isGreenSlider()) { //this on right side of canvas
+			this.x=x-this.slider.width+Math.floor(greenCannonImgWidth*greenCannonSizeFactor); 
+			this.y=y;  
+		} 
+		this.slider.position(this.x, this.y);
+	}
 
 	drawLabel(str) {
-		let sliderTxtSpacing=20;
-		const textPadding=18;
+		let sliderTxtSpacing=25;
+		const textPadding=10;
 		if (this.isRedSlider()) { //this is on left side of canvas, put text on right of slider
-			text(`${this.slider.value()} - `+str, this.x+this.slider.width+sliderTxtSpacing, this.y+textPadding);
+			text(`${this.slider.value()} - `+str, this.x+this.slider.width-sliderTxtSpacing, this.y+textPadding);
 		} else {  //this is on right side of canvas, put text on left of slider
-			text(str+` - ${this.slider.value()}`, this.x-this.slider.width-Math.floor(textWidth(str))-sliderTxtSpacing+115, this.y+textPadding);
+			text(str+` - ${this.slider.value()}`, canvasWidth-redCannonInitX-this.slider.width-Math.floor(textWidth(str))-sliderTxtSpacing-10, this.y+textPadding);
 		}
 	}
 }
@@ -326,48 +350,102 @@ function launchGreenProjectile() {
 
 function stopGame() {
 	scoreBoard.on=true;
+
+	closeBtn=createButton("Close");
+	closeBtn.style('background-color', color(255,218,185));
+	closeBtn.mousePressed(restartGame);
+
+	let canvasX=canvasOrigin.x;
+	positionCloseButton(canvasX);
+
 }
 
+function positionCloseButton(canvasX) {
+	if (closeBtn!=null) {
+		let midCanvas=canvasX+Math.floor(canvasWidth/2);
+		let txtWidth=textWidth("Close");
+		closeBtn.position(midCanvas-txtWidth, scoreBoard.y+scoreBoard.h-20);	//horizontally align with scoreboard title
+	}
+}
 
-function layoutGameSpaceOnDesktop() {
-
-	//create red player game controls
-	gameSpace.redMoveSlider=new gameControlSlider(redSliderX, redMoveSliderY, cannonMinMove, cannonMaxMove, 0);
-	gameSpace.redAngleSlider=new gameControlSlider(redSliderX, redAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
-	gameSpace.redForceSlider=new gameControlSlider(redSliderX, redForceSliderY, cannonMinForce, cannonMaxForce, 0);
-
+// position/re-position 3 buttons with 2 passed-in labels
+function positionButtons(canvasX, launchBtnLabel, stopBtnLabel) {
 	
-	//create green player game controls
-	gameSpace.greenMoveSlider=new gameControlSlider(greenSliderX, greenMoveSliderY,
-		cannonMinMove, cannonMaxMove, 0);
-	gameSpace.greenAngleSlider=new gameControlSlider(greenSliderX, greenAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
-	gameSpace.greenForceSlider=new gameControlSlider(greenSliderX, greenForceSliderY, cannonMinForce, cannonMaxForce, 0);
-
-	//create control buttons - after creating the sliders
 	let canCenter=Math.floor(canvasWidth/2);
-	let distFromCenter=100;   //distance of launch buttons from center of canvas
-	let launchBtnLabel="Launch";
+	let distFromCenter=50;   //distance of launch buttons from center of canvas
 	let launchBtnWidth=Math.floor(textWidth(launchBtnLabel))+6;
 
 	//red cannon launcher button
-	let redLaunchBtn=createButton(launchBtnLabel);
 	redLaunchBtn.style('background-color', color(255,99,71));
-	redLaunchBtn.position(canCenter-distFromCenter-launchBtnWidth, redAngleSliderY);
-	redLaunchBtn.mousePressed(launchRedProjectile);
+	redLaunchBtn.position(canvasX+canCenter-distFromCenter-launchBtnWidth+30, redAngleSliderY-5);
 
 	//green cannon launcher button
-	let greenLaunchBtn=createButton(launchBtnLabel);
 	greenLaunchBtn.style('background-color', color(50,205,50));
-	greenLaunchBtn.position(canCenter+distFromCenter-launchBtnWidth, greenAngleSliderY);
-	greenLaunchBtn.mousePressed(launchGreenProjectile);
+	greenLaunchBtn.position(canvasX+canCenter+distFromCenter-launchBtnWidth, greenAngleSliderY-5);
 
 	//stop game button
-	let stopBtnLabel="Stop Game";
 	let stopBtnWidth=Math.floor(textWidth(stopBtnLabel))+6;
-	let stopGameBtn=createButton(stopBtnLabel);
 	stopGameBtn.style('background-color', color(255,218,185));
-	stopGameBtn.position(canCenter-stopBtnWidth+10, redForceSliderY+sliderYSpace*2);
-	stopGameBtn.mousePressed(stopGame);
+	stopGameBtn.position(canvasX+canCenter-stopBtnWidth+20, redForceSliderY+sliderYSpace);
+
+	positionCloseButton(canvasX);
+}
+
+function createGlobalGameControls() {
+		//Create launch buttons for red player and green player
+		//Create control sliders for red player and green player
+		//Create stop game button
+
+		let canvasX=canvasOrigin.x;
+		let CanvasY=canvasOrigin.y;
+
+		//create red player game controls
+		redMoveSlider=new gameControlSlider(redSliderX+canvasX, redMoveSliderY, cannonMinMove, cannonMaxMove, 0);
+		redAngleSlider=new gameControlSlider(redSliderX+canvasX, redAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
+		redForceSlider=new gameControlSlider(redSliderX+canvasX, redForceSliderY, cannonMinForce, cannonMaxForce, 0);
+		
+		//create green player game controls
+		greenMoveSlider=new gameControlSlider(greenSliderX+canvasX, greenMoveSliderY,
+			cannonMinMove, cannonMaxMove, 0);
+		greenAngleSlider=new gameControlSlider(greenSliderX+canvasX, greenAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
+		greenForceSlider=new gameControlSlider(greenSliderX+canvasX, greenForceSliderY, cannonMinForce, cannonMaxForce, 0);
+	
+
+		//create control buttons - after creating the sliders
+		let launchBtnLabel="Launch";
+		let stopBtnLabel="Stop Game";
+
+		redLaunchBtn=createButton(launchBtnLabel);
+		redLaunchBtn.mousePressed(launchRedProjectile);
+		greenLaunchBtn=createButton(launchBtnLabel);
+		greenLaunchBtn.mousePressed(launchGreenProjectile);
+		stopGameBtn=createButton(stopBtnLabel);
+		stopGameBtn.mousePressed(stopGame);
+
+		//position control buttons - after creating them
+		// the button positions will be adjusted by canvas x displacement
+		positionButtons(canvasX, launchBtnLabel, stopBtnLabel);
+}
+
+function layoutGameSpaceOnDesktop() {
+
+	//////////////////////// Initial gameSpace ///////////////////
+	gameSpace = new GameSpaceObj();
+
+	let canvasX=canvasOrigin.x;
+	let CanvasY=canvasOrigin.y;
+
+	//put global control sliders and buttons in position, ie. launcher buttons, sliders, and stop game button
+	redMoveSlider.position(redSliderX+canvasX, redMoveSliderY);
+	redAngleSlider.position(redSliderX+canvasX, redAngleSliderY);
+	redForceSlider.position(redSliderX+canvasX, redForceSliderY);
+
+	greenMoveSlider.position(greenSliderX+canvasX, greenMoveSliderY);
+	greenAngleSlider.position(greenSliderX+canvasX, greenAngleSliderY);
+	greenForceSlider.position(greenSliderX+canvasX, greenForceSliderY);
+
+	//re-position 3 buttons using 2 passed-in button labels
+	positionButtons(canvasX, "Launch", "Stop Game"); 
 
 	//create the projectile object -- default to be inside red cannon
 	gameSpace.redProjectile=new Projectile(redCannonInitX, projectileImg, projectileImgSizeFactor);
@@ -433,17 +511,6 @@ function layoutGameSpaceoOnAndroidMobile() {
 }
 
 
-
-/*
-
-Launch a ball in any direction and use gravity to make the ball fall down. Make the ball bounce as it hits the surface before coming to
-a complete stop.
-
-*/
-
-
-var ball;
-var clicked = false;
 
 class GameObj {
 	//x, y point to upper left corner of object image
@@ -512,6 +579,10 @@ class Projectile extends GameObj {
 	ySpeed=0
 	velocity=0
 	gravity=1
+
+	//The following needs to be updated upon screen resize. 
+	//  These cannot be determined after the projectile is air-borne (alive), since projectiles cannot destroy it's own cannone.
+	//  These cannot be updated only in constructure, since screen resize cause inaccurate result.
 	isRedProjectile=true //initial x position determines red vs green projectile
 	isGreenProjectile=false
 
@@ -520,6 +591,14 @@ class Projectile extends GameObj {
 		this.y-=cannonPlatformHeight; //on cannon plaform (above ground level); otherwise it is considered detonated (not alive)
 		
 		this.score=0;	//unlike target objects, projectiles do not carry scores
+
+		this.updateProjectileInitialLocation();
+	}
+
+	updateProjectileInitialLocation() { //To be called upon screen resize:
+		//The following needs to be updated upon screen resize. 
+		//  These cannot be determined after the projectile is air-borne (alive), since projectiles cannot destroy it's own cannone.
+		//  These cannot be updated only in constructure, since screen resize cause inaccurate result.
 		this.isRedProjectile=this.x<canvasWidth/2;
 		this.isGreenProjectile=this.x>canvasWidth/2;
 	}
@@ -724,30 +803,68 @@ function setup() {
 
 	angleMode(DEGREES); //to specify angles in degrees
 
-	if (isOnAndroidMobile()) {
-		createCanvas(AndroidMobileWidth, AndroidMobileHeight);
-		canvasWidth=AndroidMobileWidth;
-		canvasHeight=AndroidMobileHeight;
-		layoutGameSpaceoOnAndroidMobile();
-	} else {
-		let can=createCanvas(desktopBackgroundWidth, desktopBackgroundHeight);
-			canvasWidth=desktopBackgroundWidth;
-			canvasHeight=desktopBackgroundHeight;
 
-//		canvasOrigin=can.position(); //put canvas at upper left corner of window viewport
+	setCanvasSize();		
+	canvasObj=createCanvas(canvasWidth, canvasHeight);
 
-		canvasOrigin=can.position(0,0); //put canvas at upper left corner of window viewport
+	//put canvas in an html div
+	canvasObj.parent('sketchBox');
+
+	updateGameSpaceLayoutReferencePoints()
 	
-		layoutGameSpaceOnDesktop();
-	}
+	createGlobalGameControls();
+	layoutGameSpaceOnDesktop();
+}
 
-} 
 
+function setCanvasSize() {
+	canvasWidth=windowWidth * 0.9;
+	canvasHeight=windowHeight * 0.7;
+}
+
+function updateGameSpaceLayoutReferencePoints() {
+
+	
+	canvasOrigin=canvasObj.position(); //origin (x,y) coord of canvas
+
+	setCanvasSize();
+
+	desktopGameControlWidth=canvasWidth;
+	desktopGameControlHeight=Math.floor(canvasHeight*0.38);   // 50% of canvasHeight
+
+	//groundLevel=number of pixels from top of canvas. (0,0) is upper left corner
+	groundLevel=canvasHeight-desktopGameControlHeight; //bottom space for sliders and buttons
+
+	//green cannon x pos is reference points for other objects on the right of canvas
+	greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;
+
+	updateSliderReferencePoints();
+
+
+}
  
 function windowResized() {
 
 	console.log(`resized new W: ${windowWidth}, H: ${windowHeight}`);
-	
+
+	//Check against android mobile landscape mode dimension
+	if (windowHeight<AndroidMobileHeight) {
+		return; //stop resizing if screen is smaller than an android mobile
+	}
+
+	setCanvasSize();
+
+	resizeCanvas(canvasWidth, canvasHeight);
+
+	updateGameSpaceLayoutReferencePoints();
+
+	//fix the problem of green projectile regarded as red immediately after resizing screen
+	gameSpace.redProjectile.updateProjectileInitialLocation();
+	gameSpace.greenProjectile.updateProjectileInitialLocation();
+
+	//no need to create global game controls here. Let layout function to re-position them
+
+	layoutGameSpaceOnDesktop();
 	
 		// if (isOnAndroidMobile()) {
 		// 	resizeCanvas(AndroidMobileWidth, AndroidMobileHeight)
@@ -759,16 +876,16 @@ function windowResized() {
 	}
 	
 	
-	function isOnAndroidMobile() {
+	// function isOnAndroidMobile() {
 	
-		if (windowWidth<=(AndroidMobileWidth + AndroidMobileWidthTriggerMargin)) {
-			console.log(`****Width at ${windowWidth}, Android Mobile Layout used`);
-			return true;
-		} else {
-			console.log(`****Width at ${windowWidth}, Desktop Layout Layout used`);
-			return false;
-		}
-	}
+	// 	if (windowWidth<=(AndroidMobileWidth + AndroidMobileWidthTriggerMargin)) {
+	// 		console.log(`****Width at ${windowWidth}, Android Mobile Layout used`);
+	// 		return true;
+	// 	} else {
+	// 		console.log(`****Width at ${windowWidth}, Desktop Layout Layout used`);
+	// 		return false;
+	// 	}
+	// }
 
 
 function draw() {
@@ -780,9 +897,9 @@ function draw() {
 	}
 
 	//draw game control slider lables
-	gameSpace.redMoveSlider.drawLabel('H Position');
-	gameSpace.redAngleSlider.drawLabel('Angle');
-	gameSpace.redForceSlider.drawLabel('Force');
+	redMoveSlider.drawLabel('H Position');
+	redAngleSlider.drawLabel('Angle');
+	redForceSlider.drawLabel('Force');
 
 
 	//draw target objects for green cannon (next to red cannon)
@@ -792,9 +909,9 @@ function draw() {
 
 	
 	//draw game control slider lables
-	gameSpace.greenMoveSlider.drawLabel('H Position');
-	gameSpace.greenAngleSlider.drawLabel('Angle');
-	gameSpace.greenForceSlider.drawLabel('Force');
+	greenMoveSlider.drawLabel('H Position');
+	greenAngleSlider.drawLabel('Angle');
+	greenForceSlider.drawLabel('Force');
 
 	//draw player scores and shots left during game in progress
 	gameSpace.drawPlayerStatus();
@@ -806,15 +923,15 @@ function draw() {
 	//////////////Transformations: Update cannon position and angle
 	//update red cannon status
 	let rCannon=gameSpace.redCannon;
-	rCannon.move(redCannonInitX+gameSpace.redMoveSlider.slider.value());
-	rCannon.turn(-1 * gameSpace.redAngleSlider.slider.value()); //negative angle to turn counter clockwise
-	rCannon.mountForce(gameSpace.redForceSlider.slider.value());
+	rCannon.move(redCannonInitX+redMoveSlider.slider.value());
+	rCannon.turn(-1 * redAngleSlider.slider.value()); //negative angle to turn counter clockwise
+	rCannon.mountForce(redForceSlider.slider.value());
 
 	//update green cannon status
 	let gCannon=gameSpace.greenCannon;
-	gCannon.move(greenCannonInitX-gameSpace.greenMoveSlider.slider.value()); //negative move to shift to left
-	gCannon.turn(gameSpace.greenAngleSlider.slider.value()); //postive angle to turn  clockwise
-	gCannon.mountForce(gameSpace.greenForceSlider.slider.value());
+	gCannon.move(greenCannonInitX-greenMoveSlider.slider.value()); //negative move to shift to left
+	gCannon.turn(greenAngleSlider.slider.value()); //postive angle to turn  clockwise
+	gCannon.mountForce(greenForceSlider.slider.value());
 
 	/////////////draw the cannons
 	gameSpace.redCannon.drawCannon();
