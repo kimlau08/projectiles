@@ -830,7 +830,7 @@ function updateGameSpaceLayoutReferencePoints() {
 	setCanvasSize();
 
 	desktopGameControlWidth=canvasWidth;
-	desktopGameControlHeight=Math.floor(canvasHeight*0.38);   // 50% of canvasHeight
+	desktopGameControlHeight=Math.floor(canvasHeight*0.40);   // 40% of canvasHeight
 
 	//groundLevel=number of pixels from top of canvas. (0,0) is upper left corner
 	groundLevel=canvasHeight-desktopGameControlHeight; //bottom space for sliders and buttons
