@@ -41,6 +41,14 @@ let greenCannonImg;			let greenCannonSizeFactor=0.5;
 let greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;  //symmetric dist from righ side of canvas
 
 let projectileImg;			let projectileImgSizeFactor=0.2;
+let eggPlantImg;			let eggPlantImgSizeFactor=0.2;
+let steakImg;				let steakImgSizeFactor=0.3;
+let breadImg;				let breadImgSizeFactor=0.5;
+let troutImg;				let troutImgSizeFactor=0.3;
+let salmonImg;				let salmonImgSizeFactor=0.3;
+let rubberChickImg;			let rubberChickImgSizeFactor=0.2;
+
+
 const redProjectileInitX=redCannonInitX; 	//inside red cannon
 const redProjectileInitY=groundLevel-cannonPlatformHeight; 	//inside red cannon
 const greenProjectileInitX=greenCannonInitX //inside green cannon
@@ -124,6 +132,20 @@ function preload() {
 	hutImg=loadImage('../assets/hut.png');
 	barnImg=loadImage('../assets/barn_house.png');
 	projectileImg=loadImage('../assets/rubber_chick.png');
+
+	eggPlantImg=loadImage('../assets/egg_plant.png');
+	steakImg=loadImage('../assets/steak.png');
+	breadImg=loadImage('../assets/bread.png');
+	troutImg=loadImage('../assets/trout.png');
+	salmonImg=loadImage('../assets/salmon.png');
+	rubberChickImg=loadImage('../assets/rubber_chick.png');
+
+// eggPlantImgSizeFactor=0.2;
+// steakImgSizeFactor=0.3;
+// breadImgSizeFactor=0.3;
+// troutImgSizeFactor=0.3;
+// salmonImgSizeFactor=0.3;
+// rubberChickImgSizeFactor=0.2;
 
 	smokeImg=loadImage('../assets/cannon_smoke2.png');
 }
@@ -875,7 +897,7 @@ function draw() {
 	redAngleSlider.drawLabel('Angle');
 	redForceSlider.drawLabel('Force');
 
-	
+
 	//draw target objects for green cannon (next to red cannon)
 	for (let i=0; i<gameSpace.greenTargets.length; i++) {
 		gameSpace.greenTargets[i].drawObj();
