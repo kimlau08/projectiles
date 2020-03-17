@@ -40,13 +40,13 @@ const redCannonInitX=20; 	//initial distance from left side of canvas
 let greenCannonImg;			let greenCannonSizeFactor=0.5;
 let greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;  //symmetric dist from righ side of canvas
 
-let projectileImg;			let projectileImgSizeFactor=0.2;
+let projectileImg;			let projectileImgSizeFactor=0.15;
 let eggPlantImg;			let eggPlantImgSizeFactor=0.2;
 let steakImg;				let steakImgSizeFactor=0.3;
 let breadImg;				let breadImgSizeFactor=0.5;
 let troutImg;				let troutImgSizeFactor=0.3;
 let salmonImg;				let salmonImgSizeFactor=0.3;
-let rubberChickImg;			let rubberChickImgSizeFactor=0.2;
+let rubberChickImg;			let rubberChickImgSizeFactor=0.15;
 
 
 const redProjectileInitX=redCannonInitX; 	//inside red cannon
@@ -150,11 +150,16 @@ class GameSpaceObj {
 		this.redProjectile = {};
 		this.greenProjectile = {};
 
+		this.redStore=[];
+		this.greenStore=[];
+
 		this.redCannon = {};
 		this.greenCannon = {};
 
 		this.redTargets = [];
 		this.greenTargets = [];
+
+		this.mountainObstacle={};
 
 		this.smoke = {};
 		this.smokeFrames = 50; //show for 50 frames each time.
@@ -508,6 +513,17 @@ function layoutGameSpaceOnDesktop() {
 	gameSpace.redTargets.push(barn2);
 	gameSpace.redTargets.push(hut4);
 
+	//mountain obstacle is implemented as an object with zero as score
+	let mountainX=Math.floor(canvasWidth/2-canvasWidth*0.05); //occupying 5% on either side of the middle of canvas
+	let mountainY=groundLevel;
+	let mountainH=groundLevel-Math.floor(canvasHeight*0.25); //25% head room above mountain
+	let mountainW=Math.floor(canvasWidth*0.1);  //10% of canvas width
+	let mountainImgSizeFactor=1;
+	let mountainObj=new GameObj(mountainX, null, mountainImgSizeFactor); //no mountain img needed.
+
+	mountainObj.setObjWidthHeight(mountainW, mountainH);
+	gameSpace.mountainObstacle=mountainObj;
+
 	//create red cannon and its platform
 	gameSpace.redCannon=new Cannon(redCannonInitX, redCannonInitAngle, initialShotsCount, redCannonImg, redCannonSizeFactor, cannonPlatformImg, cannonPlatformSizeFactor);
 	//create green cannon and its platform
@@ -543,14 +559,24 @@ class GameObj {
 
 	constructor(x, img, imgSizeFactor) {
 		this.x=x; this.y=groundLevel; 
-		this.objImg=img;
-		this.imgSizeFactor=imgSizeFactor;
-		this.w=Math.floor(this.objImg.width*imgSizeFactor);
-		this.h=Math.floor(this.objImg.height*imgSizeFactor);
 
-		this.upperLeft.x=x;
+		if (img!=null) { 
+			this.objImg=img;
+			this.imgSizeFactor=imgSizeFactor;
+			this.w=Math.floor(this.objImg.width*imgSizeFactor);
+			this.h=Math.floor(this.objImg.height*imgSizeFactor);
+		} else {
+			this.w=0;
+			this.h=0;
+		}
+
+		this.setObjWidthHeight(this.w, this.h);
+	}
+
+	setObjWidthHeight(w, h) {
+		this.upperLeft.x=this.x;
 		this.upperLeft.y=this.y-this.h;
-		this.lowerRight.x=x+this.w;
+		this.lowerRight.x=this.x+this.w;
 		this.lowerRight.y=this.y;
 	}
 
@@ -596,7 +622,7 @@ class Projectile extends GameObj {
 
 	constructor(x, img, imgSizeFactor) {
 		super(x, img, imgSizeFactor);
-		this.y-=cannonPlatformHeight; //on cannon plaform (above ground level); otherwise it is considered detonated (not alive)
+		this.y-=cannonPlatformHeight; //on cannon plaform (above ground level); otherwise it is considered consumed (not alive)
 		
 		this.score=0;	//unlike target objects, projectiles do not carry scores
 
@@ -649,12 +675,12 @@ class Projectile extends GameObj {
 				this.drawObj();
 			}
 		}
-console.log(`x: ${(this.x).toFixed(4)} y: ${(this.y).toFixed(4)} xSpd: ${(this.xSpeed).toFixed(4)} ySpd: ${(this.ySpeed).toFixed(4)} V: ${(this.velocity).toFixed(4)}`);
+//console.log(`x: ${(this.x).toFixed(4)} y: ${(this.y).toFixed(4)} xSpd: ${(this.xSpeed).toFixed(4)} ySpd: ${(this.ySpeed).toFixed(4)} V: ${(this.velocity).toFixed(4)}`);
 	
 
 		this.ySpeed += this.gravity;
 
-		if(this.y >= groundLevel){ //the projectile reach ground level and detonated
+		if(this.y >= groundLevel){ //the projectile reach ground level and consumed
 			this.isAlive=false;   	//stop drawing the projectile
 			//reset position to inside the cannon
 			if (this.isRedProjectile) {
@@ -716,6 +742,12 @@ console.log(`x: ${(this.x).toFixed(4)} y: ${(this.y).toFixed(4)} xSpd: ${(this.x
 				!this.isRedProjectile) {   //shooting itself is not allowed
 			//red cannon is hit by a projectile, green player wins
 			scoreBoard.knockOutWinner="Green player wins. It is a knock out!"
+			stopGame();
+		}
+
+		//is this the last launch possible in the entire game ?
+		if (redCannon.shotsLeft==0 && greenCannon.shotsLeft==0) {
+			//not body has any shots left
 			stopGame();
 		}
 	}
