@@ -9,13 +9,8 @@ let canvasObj;
 let canvasOrigin; //origin (x,y) coord of canvas
 
 //android mobile landscape dimensions
-const AndroidMobileWidthTriggerMargin=200;
 const AndroidMobileWidth=640;
 const AndroidMobileHeight=360;
-
-const AndroidMobileGameHeight=400;
-const AndroidMobileGameControlWidth=AndroidMobileWidth;
-const AndroidMobileGameControlHeight=desktopGameControlHeight;
 
 let canvasWidth=desktopBackgroundWidth;
 let canvasHeight=desktopBackgroundHeight;
@@ -215,7 +210,7 @@ scoreBoard = {
 			fill(0, 0, 255);
 			let scoreboardTitle="Scores";
 			let line1Height=30;
-			let line2Height=40;  let=line3Height=20;
+			let line2Height=40;  let line3Height=20;
 			let line4Height=50;
 
 			let scoreX=this.x+Math.floor((this.w-textWidth(scoreboardTitle))/2);
@@ -309,8 +304,8 @@ function launchRedProjectile() {
 	let redCannon=gameSpace.redCannon;
 	let rProjectile=gameSpace.redProjectile;
 
-	if (redCannon.shotsLeft<=0) {
-		return; //no more shots left
+	if (redCannon.shotsLeft<=0 || redCannon.force==0) {
+		return; //no more shots left or no force in cannon. Do not launch
 	}
 
 	//initialize position to be resting inside cannon
@@ -331,8 +326,8 @@ function launchGreenProjectile() {
 	let greenCannon=gameSpace.greenCannon;
 	let gProjectile=gameSpace.greenProjectile;
 
-	if (greenCannon.shotsLeft<=0) {
-		return; //no more shots left
+	if (greenCannon.shotsLeft<=0 || greenCannon.force==0) {
+		return; //no more shots left or no force in cannon. Do not launch
 	}
 
 	//initialize position to be resting inside cannon
@@ -355,11 +350,15 @@ function stopGame() {
 	closeBtn.style('background-color', color(255,218,185));
 	closeBtn.mousePressed(restartGame);
 
+	redLaunchBtn.hide();
+	greenLaunchBtn.hide();
+
 	let canvasX=canvasOrigin.x;
 	positionCloseButton(canvasX);
 
 }
 
+//position the close button only after "Stop Game" button is clicked
 function positionCloseButton(canvasX) {
 	if (closeBtn!=null) {
 		let midCanvas=canvasX+Math.floor(canvasWidth/2);
@@ -392,39 +391,39 @@ function positionButtons(canvasX, launchBtnLabel, stopBtnLabel) {
 }
 
 function createGlobalGameControls() {
-		//Create launch buttons for red player and green player
-		//Create control sliders for red player and green player
-		//Create stop game button
+	//Create launch buttons for red player and green player
+	//Create control sliders for red player and green player
+	//Create stop game button
 
-		let canvasX=canvasOrigin.x;
-		let CanvasY=canvasOrigin.y;
+	let canvasX=canvasOrigin.x;
+	let CanvasY=canvasOrigin.y;
 
-		//create red player game controls
-		redMoveSlider=new gameControlSlider(redSliderX+canvasX, redMoveSliderY, cannonMinMove, cannonMaxMove, 0);
-		redAngleSlider=new gameControlSlider(redSliderX+canvasX, redAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
-		redForceSlider=new gameControlSlider(redSliderX+canvasX, redForceSliderY, cannonMinForce, cannonMaxForce, 0);
-		
-		//create green player game controls
-		greenMoveSlider=new gameControlSlider(greenSliderX+canvasX, greenMoveSliderY,
-			cannonMinMove, cannonMaxMove, 0);
-		greenAngleSlider=new gameControlSlider(greenSliderX+canvasX, greenAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
-		greenForceSlider=new gameControlSlider(greenSliderX+canvasX, greenForceSliderY, cannonMinForce, cannonMaxForce, 0);
+	//create red player game controls
+	redMoveSlider=new gameControlSlider(redSliderX+canvasX, redMoveSliderY, cannonMinMove, cannonMaxMove, 0);
+	redAngleSlider=new gameControlSlider(redSliderX+canvasX, redAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
+	redForceSlider=new gameControlSlider(redSliderX+canvasX, redForceSliderY, cannonMinForce, cannonMaxForce, 0);
 	
+	//create green player game controls
+	greenMoveSlider=new gameControlSlider(greenSliderX+canvasX, greenMoveSliderY,
+		cannonMinMove, cannonMaxMove, 0);
+	greenAngleSlider=new gameControlSlider(greenSliderX+canvasX, greenAngleSliderY, cannonMinAngle, cannonMaxAngle, 0);
+	greenForceSlider=new gameControlSlider(greenSliderX+canvasX, greenForceSliderY, cannonMinForce, cannonMaxForce, 0);
 
-		//create control buttons - after creating the sliders
-		let launchBtnLabel="Launch";
-		let stopBtnLabel="Stop Game";
 
-		redLaunchBtn=createButton(launchBtnLabel);
-		redLaunchBtn.mousePressed(launchRedProjectile);
-		greenLaunchBtn=createButton(launchBtnLabel);
-		greenLaunchBtn.mousePressed(launchGreenProjectile);
-		stopGameBtn=createButton(stopBtnLabel);
-		stopGameBtn.mousePressed(stopGame);
+	//create control buttons - after creating the sliders
+	let launchBtnLabel="Launch";
+	let stopBtnLabel="Stop Game";
 
-		//position control buttons - after creating them
-		// the button positions will be adjusted by canvas x displacement
-		positionButtons(canvasX, launchBtnLabel, stopBtnLabel);
+	redLaunchBtn=createButton(launchBtnLabel);
+	redLaunchBtn.mousePressed(launchRedProjectile);
+	greenLaunchBtn=createButton(launchBtnLabel);
+	greenLaunchBtn.mousePressed(launchGreenProjectile);
+	stopGameBtn=createButton(stopBtnLabel);
+	stopGameBtn.mousePressed(stopGame);
+
+	//position control buttons - after creating them
+	// the button positions will be adjusted by canvas x displacement
+	positionButtons(canvasX, launchBtnLabel, stopBtnLabel);
 }
 
 function layoutGameSpaceOnDesktop() {
@@ -505,12 +504,6 @@ function layoutGameSpaceOnDesktop() {
 	gameSpace.smoke.isAlive=false; //do not draw until a target is hit
 
 }
-
-function layoutGameSpaceoOnAndroidMobile() {
-
-}
-
-
 
 class GameObj {
 	//x, y point to upper left corner of object image
@@ -848,7 +841,7 @@ function windowResized() {
 	console.log(`resized new W: ${windowWidth}, H: ${windowHeight}`);
 
 	//Check against android mobile landscape mode dimension
-	if (windowHeight<AndroidMobileHeight) {
+	if (windowHeight<AndroidMobileHeight || windowWidth<AndroidMobileWidth) {
 		return; //stop resizing if screen is smaller than an android mobile
 	}
 
@@ -865,28 +858,9 @@ function windowResized() {
 	//no need to create global game controls here. Let layout function to re-position them
 
 	layoutGameSpaceOnDesktop();
-	
-		// if (isOnAndroidMobile()) {
-		// 	resizeCanvas(AndroidMobileWidth, AndroidMobileHeight)
-		// } else {
-		// 	resizeCanvas(desktopBackgroundWidth, desktopBackgroundHeight);
-		// }
-	
-		//resizeCanvas(w, h, [noRedraw])
+
 	}
 	
-	
-	// function isOnAndroidMobile() {
-	
-	// 	if (windowWidth<=(AndroidMobileWidth + AndroidMobileWidthTriggerMargin)) {
-	// 		console.log(`****Width at ${windowWidth}, Android Mobile Layout used`);
-	// 		return true;
-	// 	} else {
-	// 		console.log(`****Width at ${windowWidth}, Desktop Layout Layout used`);
-	// 		return false;
-	// 	}
-	// }
-
 
 function draw() {
 	background(bg);
@@ -901,7 +875,7 @@ function draw() {
 	redAngleSlider.drawLabel('Angle');
 	redForceSlider.drawLabel('Force');
 
-
+	
 	//draw target objects for green cannon (next to red cannon)
 	for (let i=0; i<gameSpace.greenTargets.length; i++) {
 		gameSpace.greenTargets[i].drawObj();
