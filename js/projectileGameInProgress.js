@@ -140,13 +140,6 @@ function preload() {
 	salmonImg=loadImage('../assets/salmon.png');
 	rubberChickImg=loadImage('../assets/rubber_chick.png');
 
-// eggPlantImgSizeFactor=0.2;
-// steakImgSizeFactor=0.3;
-// breadImgSizeFactor=0.3;
-// troutImgSizeFactor=0.3;
-// salmonImgSizeFactor=0.3;
-// rubberChickImgSizeFactor=0.2;
-
 	smokeImg=loadImage('../assets/cannon_smoke2.png');
 }
 
