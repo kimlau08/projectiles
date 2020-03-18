@@ -40,7 +40,7 @@ const redCannonInitX=20; 	//initial distance from left side of canvas
 let greenCannonImg;			let greenCannonSizeFactor=0.5;
 let greenCannonInitX=canvasWidth-redCannonInitX-cannonWidth;  //symmetric dist from righ side of canvas
 
-let projectileImg;			let projectileImgSizeFactor=0.15;
+let projectileImg;			let projectileImgSizeFactor=0.1;
 let eggPlantImg;			let eggPlantImgSizeFactor=0.2;
 let steakImg;				let steakImgSizeFactor=0.3;
 let breadImg;				let breadImgSizeFactor=0.5;
@@ -372,6 +372,7 @@ function stopGame() {
 
 	redLaunchBtn.hide();
 	greenLaunchBtn.hide();
+	stopGameBtn.hide();
 
 	let canvasX=canvasOrigin.x;
 	positionCloseButton(canvasX);
@@ -870,7 +871,7 @@ function updateGameSpaceLayoutReferencePoints() {
 	setCanvasSize();
 
 	desktopGameControlWidth=canvasWidth;
-	desktopGameControlHeight=Math.floor(canvasHeight*0.40);   // 40% of canvasHeight
+	desktopGameControlHeight=Math.floor(canvasHeight*0.55);   // 55% of canvasHeight
 
 	//groundLevel=number of pixels from top of canvas. (0,0) is upper left corner
 	groundLevel=canvasHeight-desktopGameControlHeight; //bottom space for sliders and buttons

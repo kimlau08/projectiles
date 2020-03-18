@@ -5,6 +5,7 @@
 ![wireframe](./wireframe/Mountain_Scene.png)
 ![wireframe](./wireframe/Game_Stop-Mountain_Scene.png)
 
+# Note: This game require a web server to run. Simple openning the index.html file does not pull in all resources.
 # Game instructinos
 # Goal of the game
 #	Launch a projectile to hit target object. The target object may be behind an obstable.
@@ -12,7 +13,7 @@
 # Players:
 #	There are 2 players are allowed. Red player on left. Green player on right.
 #	Each player has a launcher, which he can use to launcher a projectile. Each player has a limited number of projectiles. 
-#	Red player always start first. The takes alternate turns afterwards.
+#	Either red player of green player can start first.
 #	Player decides among themselves who is Red player, and who is Green player.
 #
 # To start game

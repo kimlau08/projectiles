@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Projectiles</title>
-
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <link rel="stylesheet" type="text/css" href="./css/index.css">
   </head>
 
@@ -13,30 +13,15 @@
     <h1>Projectiles</h1>
     <div id="startGameContainer">
       <div id="gameSnapshot">
-        <a href='./pages/projectileGameInProgress.html'>
-        <img src="./assets/mountain_scene_game_snapshot.png" style="width: 100%"/>
-        </a>
+        <img id="onImgLink" src="./assets/mountain_scene_game_snapshot.png" style="width: 100%"/>
       </div>
     
       <div id="startGameBtnContainer">
-        <button id="startGameBtn" onclick="window.location.href = './pages/projectileGameInProgress.html';">Start Game</button>
+        <button id="startGameBtn">Start Game</button>
       </div>
-      <div id="preludeContainer">
-        <div id="preludeBox">
-          <div id="groceryImgBox">
-            <img class="groceryImg" src="./assets/steak.png"/>
-            <img class="groceryImg" src="./assets/bread.png"/>
-            <img class="groceryImg" id="salmonImg" src="./assets/salmon.png"/>
-          </div>
-          <div id="preludeTxt">
-            <p>The grocery launcher has emerged as a new way to deliver goods, 2 major grocers in neigboring towns are racing to reach customers with groceries using the new technology.</p>
-
-            <p>As the General Manager of your store, your goal is to deliver to your customers, while trying to jam the opponent's launcher with groceries</p>
-          </div>
-        </div>
-      </div>
+      
     </div>
 
-
+     <script src="./js/index.js"></script>
   </body>
 </html>
