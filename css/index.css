@@ -2,25 +2,93 @@ body {
     text-align: center;
 }
 
-#startGameContainer {
-    display: flex;
-    flex-direction: column;
-}
+    #startGameContainer {
+        display: flex;
+        flex-direction: column;
 
-#gameSnapshot {
-    width: 100%;
-    height: auto;
-}
+        position: relative;
+    }
 
-#startGameBtnContainer {
-    width: 100%;
-    margin-top: 10px;
-}
+        #gameSnapshot {
+            margin: 0 auto;
+            width: 100%;
+            height: auto;
+        }
 
+        #startGameBtnContainer {
+            width: 100%;
+            margin-top: 10px;
+        }
 
-#startGameBtn {
-    margin-top: 8px;
-    display: inline-block;
-    font-size: 16px;
-    background-color: #FFDAB9;
-}
+        #startGameBtn {
+            margin-top: 8px;
+            display: inline-block;
+            font-size: 16px;
+            background-color: #FFDAB9;
+        }
+
+        #preludeContainer {
+            position: absolute;
+            top: 60px;
+
+            width: 100%;
+
+            animation: 1s linear 0s 1 dropIn;
+        }
+                
+        @keyframes dropIn {
+            0% {
+            transform: translateX(+100%);
+            }
+            25% { 
+            transform: translateX(75%);
+            }
+            50% { 
+            transform: translateX(50%);
+            }
+            75% { 
+            transform: translateX(25%);
+            }
+            100% { 
+            transform: translateX(0%);
+            }
+        }
+
+            #preludeBox {
+                display: flex;
+                flex-direction: row;
+                width: 90%;
+                background-color: burlywood;
+                border-radius: 20px;
+                margin: 0 auto;
+            }
+                #groceryImgBox {
+                    display: flex;
+                    flex-direction: column;
+                    width: 25%;
+
+                    align-items: stretch;
+                }
+                    .groceryImg {
+                        margin: 0 auto;
+                        width: 40%;
+                        height: auto;
+                    }
+
+                    #salmonImg {
+                        width: 70%;
+                    }
+
+                    #eggPlantImg{
+                        width: 20%;
+                    }
+
+                #preludeTxt {
+                    width: 60%;
+                    text-align: center;
+                    font-weight: bold;
+                    color:sienna;
+                    font-family: Helvetica;
+                    margin-top: 10px;
+                    margin-bottom: 10px;
+                }
