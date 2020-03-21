@@ -1,11 +1,14 @@
 # (Project1Game)
 
+## *****NOTE This game require a web server to run. Simply openning the index.html file does not pull in all resources.*****
+
 # Wireframe
+
 ![wireframe](./wireframe/Game_Start.png)
 ![wireframe](./wireframe/Mountain_Scene.png)
 ![wireframe](./wireframe/Game_Stop-Mountain_Scene.png)
 
-# NOTE: This game require a web server to run. Simple openning the index.html file does not pull in all resources.
+
 # 
 # The storyline: A new way has emerged to deliver goods, while maintaining minimum human contact.
 #                Two major grocers in neighboring towns are racing to reach their customers 
@@ -44,7 +47,7 @@
 #	1) Click the Stop Game button.
 #	2) All the projectiles have been used.
 # 
-# NOTE: This game require a web server to run. Simple openning the index.html file does not pull in all resources.
+# NOTE: This game require a web server to run. Simply openning the index.html file does not pull in all resources.
 
 
 
